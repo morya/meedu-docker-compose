@@ -1,0 +1,71 @@
+services:
+  mysql:
+    image: mysql:5.7
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_DATABASE: 'meedu'
+      MYSQL_ROOT_PASSWORD: 'meedu'
+    ports:
+      - 3306:3306
+    volumes:
+      - 'mysql-data:/var/lib/mysql'
+    command:
+      --character-set-server=utf8mb4 --log-bin=/var/lib/mysql/mysql-bin
+      --server-id=100
+
+  redis:
+    restart: always
+    image: redis:6.2-alpine3.17 ## with arm64 / amd64
+    environment:
+      - REDIS_AOF_ENABLED=no
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-data:/data
+    ports:
+      - 6379:6379
+
+  meedu:
+    restart: always
+    image: meeduxyz/api:4.9.5
+    env_file: 
+      - .env
+    links:
+      - mysql
+      - redis
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - '8380:80'
+
+  traefik:
+    # The official v2 Traefik docker image
+    restart: always
+    networks:
+      - eagle
+    image: traefik:v2.9
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --configfile=/etc/traefik/traefik.yaml --api.insecure=true --api.dashboard=true
+    ports:
+      # The HTTP port
+      - "80:80"
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - ./traefik/config.yaml:/etc/traefik/traefik.yaml
+      # - ./traefik/ssl:/etc/traefik-ssl
+      - ./traefik/traefik.d:/etc/traefik.d
+      - ./traefik/acme.json:/data/acme.json
+    depends_on:
+      - meedu
+
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+  meedu-data:
+    driver: local
