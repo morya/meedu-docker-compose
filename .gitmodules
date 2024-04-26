@@ -1,0 +1,9 @@
+[submodule "backend-v2"]
+	path = backend-v2
+	url = https://github.com/Meedu/backend-v2.git
+[submodule "pc-v1"]
+	path = pc-v1
+	url = https://github.com/Meedu/pc-v1.git
+[submodule "h5-v1"]
+	path = h5-v1
+	url = https://github.com/Meedu/h5-v1.git
