@@ -1,0 +1,16 @@
+http:
+  services:
+    service-api:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://meedu
+
+  routers:
+    route-api:
+      rule: Host(`meedu.example.com`) && PathPrefix(`/api`)
+      tls:
+        certResolver: myresolver
+      entryPoints:
+        - websecure
+      service: service-api
